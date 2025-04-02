@@ -1,0 +1,56 @@
+<div class="product-page-container-orders">
+  <div class="dashboard-container">
+      <div class="product_content">
+          <div class="product-header">
+            
+    <h2>Your Orders</h2>
+  </div>
+
+  <div class="product-table-container">
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Total Price (KES)</th>
+          <th>Date</th>
+          <th>Order Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (userWithOrders && userWithOrders.orders.length > 0) { %>
+          <% userWithOrders.orders.forEach(order => { %>
+            <tr>
+              <td><%= order._id %></td>
+              <td><%= order.totalPrice.toFixed(2) %></td>
+              <td>
+                <%= new Date(order.createdAt).toLocaleDateString('en-GB', { 
+                  day: '2-digit', month: '2-digit', year: 'numeric' 
+                }) %>
+              </td>
+              <td class="order-status <%= order.status.toLowerCase().replace(/\s+/g, '-') %>">
+                <%= order.status %>
+              </td>
+              <td>
+                <div class="actions">
+                  <% if (order.status === 'enroute') { %>
+                    <form action="/confirm-order/<%= order._id %>" method="POST">
+                      <button class="confirm-order-btn">Confirm</button>
+                    </form>
+                  <% } else { %>
+                    <span class="confirmed-text">Confirmed</span>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="5" class="no-orders-message">No orders available</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div></div>

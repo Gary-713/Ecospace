@@ -1,0 +1,344 @@
+<div class="product-page-container">
+    <div class="dashboard-container">
+        <div class="product-header">
+            <div class="messages-page">
+                <h2>Your Conversations</h2>
+                <div class="chatrooms-container">
+                    <% if (chatrooms.length> 0) { %>
+                        <% chatrooms.forEach(chatroom=> { %>
+                            <% let otherParticipant=chatroom.participants.find(participant=> participant._id.toString()
+                                !==
+                                userId.toString()); %>
+                                <div class="chatroom-card" data-chatroom-id="<%= chatroom._id %>"
+                                    data-messages='<%- JSON.stringify(chatroom.messages).replace(/' /g, "&#39;" ) %>'
+                                    >
+                                    <div class="chatroom-user-profile">
+                                        <img src="img/user.png" alt="Profile Picture" class="chatroom-profile-pic">
+                                        <span class="chatroom-user-name">
+                                            <%= otherParticipant ? otherParticipant.username : "Unknown User" %>
+                                        </span>
+                                    </div>
+                                    <div class="chatroom-meta">
+                                        <span>
+                                            <%= chatroom.lastUpdatedAtFormatted %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <form action="/message-seller" id="unique-modal-form" method="POST">
+
+                                    <!-- Chatroom Modal -->
+                                    <div id="chatroomModal" class="chatroom-modal" style="display: none;">
+                                        <div class="chatroom-modal-content">
+                                            <div class="chatroom-modal-header">
+                                                <div class="chatroom-modal-participant">
+                                                    <img src="img/user.png" alt="Participant"
+                                                        class="chatroom-modal-participant-img">
+                                                    <div class="chatroom-modal-participant-info">
+                                                        <span class="chatroom-modal-participant-name"></span>
+                                                    </div>
+                                                </div>
+                                                <span class="chatroom-modal-close-button">&times;</span>
+                                            </div>
+                                            <div class="chatroom-modal-messages">
+                                            </div>
+                                            <div class="chatroom-modal-message-input">
+                                                <input name="message" type="text" placeholder="Enter text here..."
+                                                    class="chatroom-modal-input-field">
+                                                <input type="hidden" id="hidden_recipient" name="chatroom" value=''>
+
+
+                                                <button class="chatroom-modal-send-btn">Send ➤</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                                <% }); %>
+                                    <% } else { %>
+                                        <p>No chatrooms available</p>
+                                        <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+
+        const chatroomCardsList = document.querySelectorAll('.chatroom-card');
+        const chatroomDisplayModal = document.getElementById('chatroomModal');
+        const chatroomModalMessagesContainer = document.querySelector('.chatroom-modal-messages');
+        const chatroomModalCloseButton = document.querySelector('.chatroom-modal-close-button');
+        const chatroomModalParticipantName = document.querySelector('.chatroom-modal-participant-name');
+        let pollingInterval = null; // To store the interval ID
+        let lastMessageId;
+
+
+        chatroomCardsList.forEach(singleChatroomCard => {
+
+            function checkUnreadMessages(chatroomId) {
+                fetch(`/get-messages/${chatroomId}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                )
+                .then(res => res.json())
+                .then(data => {
+                    
+                    // console.log(data.messages)
+                    // Check if any of the messages are unread
+                    const unreadMessages = data.messages.filter(message => message.isRead === false && message.sender._id !== "<%= userId %>");
+
+                    if(unreadMessages.length > 0) {
+                        singleChatroomCard.classList.add('unread');
+
+
+                        // If there are unread messages, add a notification
+                        // const notification = document.createElement('span');
+                        // notification.classList.add('notification');
+                        // notification.textContent = unreadMessages.length;
+                        // singleChatroomCard.appendChild(notification);
+                    } else {
+                        singleChatroomCard.classList.remove('unread');
+
+                        // If no unread messages, remove the notification
+                        // const existingNotification = singleChatroomCard.querySelector('.notification');
+                        // if (existingNotification) {
+                        //     existingNotification.remove();
+                        // }
+                    }
+                    console.log(unreadMessages)
+
+                })
+                // console.log(chatroomId)
+
+            }
+            checkUnreadMessages(singleChatroomCard.getAttribute('data-chatroom-id'))
+
+
+            singleChatroomCard.addEventListener('click', () => {
+
+
+
+
+                let currentChatroom = singleChatroomCard.getAttribute('data-chatroom-id');
+                const participantName = singleChatroomCard.querySelector('.chatroom-user-name').textContent;
+
+
+                function showToast(message) {
+                    const toast = document.createElement('div');
+                    toast.classList.add('toast');
+                    toast.textContent = message;
+                    chatroomDisplayModal.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                }
+
+                function renderMessages(chatroomId) {
+                    singleChatroomCard.classList.remove('unread');
+
+                    showToast("Fetching coversation...")
+                    // Fetch updated messages
+                    fetch(`/chatroom/${chatroomId}/messages`)
+                        .then(response => response.json())
+                        .then(data => {
+                            setTimeout(() => {
+                                // console.log(data)
+                                data.messages.forEach(message => {
+
+
+                                    
+                                    const messageElement = document.createElement('div');
+                                    messageElement.classList.add('chat-message');
+                                    messageElement.setAttribute("sender", `${message.sender.username}`)
+                                    messageElement.textContent = `${message.content}`;
+                                    messageElement.setAttribute("messageId", `${message._id}`)
+                                    messageElement.classList.add(message.sender._id === "<%= userId %>" ? 'sent' : 'received');
+                                    chatroomModalMessagesContainer.appendChild(messageElement);
+
+                                });
+
+                                lastMessageId = chatroomModalMessagesContainer.lastChild.getAttribute('messageid');
+                                // Smoothly scroll to the bottom of the container
+                                chatroomModalMessagesContainer.scroll({
+                                    top: chatroomModalMessagesContainer.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+
+                            }, 2000)
+                        })
+                        .catch(error => console.error("Error fetching messages:", error))
+
+
+
+                }
+                renderMessages(currentChatroom);
+
+
+                function refreshMessages(chatroomId) {
+
+
+
+                    pollingInterval = setInterval(() => {
+                        checkUnreadMessages(singleChatroomCard.getAttribute('data-chatroom-id'))
+
+                        // Fetch updated messages
+                        fetch(`/chatroom/${chatroomId}/messages`)
+                            .then(response => response.json())
+                            .then(data => {
+
+                                if (data.messages[data.messages.length - 1]._id !== lastMessageId) {
+                                    document.querySelector('.chatroom-modal-messages').innerHTML = '';
+
+
+
+                                    data.messages.forEach(message => {
+                                        const messageElement = document.createElement('div');
+                                        messageElement.classList.add('chat-message');
+                                        messageElement.setAttribute("sender", `${message.sender.username}`)
+                                        messageElement.textContent = `${message.content}`;
+                                        messageElement.setAttribute("messageId", `${message._id}`)
+                                        messageElement.classList.add(message.sender._id.toString() === "<%= userId %>" ? 'sent' : 'received');
+                                        chatroomModalMessagesContainer.appendChild(messageElement);
+
+                                    });
+
+                                    lastMessageId = chatroomModalMessagesContainer.lastChild.getAttribute('messageid');
+                                    // Smoothly scroll to the bottom of the container
+                                    chatroomModalMessagesContainer.scroll({
+                                        top: chatroomModalMessagesContainer.scrollHeight,
+                                        behavior: 'smooth'
+                                    });
+
+                                }
+
+
+                                // chatroomModalMessagesContainer[chatroomModalMessagesContainer.length -1].getAttribute('messageid')? "No new message": `New message found: ${data.messages[data.messages.length-1]}` );
+
+
+
+
+                            })
+
+                            .catch(error => console.error("Error fetching messages:", error))
+                    }, 2000);
+                }
+
+                refreshMessages(currentChatroom);
+
+
+
+
+                chatroomModalParticipantName.textContent = participantName;
+                document.getElementById('hidden_recipient').value = currentChatroom;
+                chatroomDisplayModal.style.display = 'block';
+
+            });
+        });
+
+        // Close button event handling
+        if (chatroomModalCloseButton) {
+            chatroomModalCloseButton.addEventListener('click', () => {
+                chatroomDisplayModal.style.display = 'none';
+
+
+
+                // Clear the polling interval to stop fetching messages
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null; // Nullify the interval ID
+                }
+            });
+        }
+
+
+        // Close the modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === chatroomDisplayModal) {
+                chatroomDisplayModal.style.display = 'none';
+
+                // Clear the polling interval to stop fetching messages
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null; // Nullify the interval ID
+                }
+            }
+
+        });
+
+
+
+        // Logic for sending message to server and updating the modal
+        const chatroomForm = document.getElementById("unique-modal-form");
+        if (chatroomForm) {
+
+            chatroomForm.addEventListener("submit", (event) => {
+
+                event.preventDefault();  // Prevent default form submission
+
+                const messageInput = document.querySelector('.chatroom-modal-input-field')
+                const message = messageInput.value;
+                const chatroomId = document.getElementById('hidden_recipient').value;
+
+                if (!message) return;
+
+                fetch('/message-seller', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        chatroom: chatroomId
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // console.log("Server response:", data.updatedMessages);
+                        if (data) {
+                            document.querySelector('.chatroom-modal-messages').innerHTML = '';
+
+                            const newMessages = data.updatedMessages;
+
+                            newMessages.forEach((message) => {
+                                const messageElement = document.createElement('div');
+                                messageElement.classList.add('chat-message');
+                                messageElement.setAttribute("sender", `${message.sender}`)//e.g "Randy"
+                                messageElement.textContent = `${message.content}`;
+
+                                //Get the ids
+                                let user = message.user;
+                                let senderOfMessage = message.senderId;
+
+                                if (senderOfMessage === user) {
+                                    messageElement.classList.add('sent')
+                                } else {
+                                    messageElement.classList.add('received')
+                                }
+
+                                chatroomModalMessagesContainer.appendChild(messageElement);
+                            })
+                            messageInput.value = "";
+                            // Smoothly scroll to the bottom of the container
+                            chatroomModalMessagesContainer.scroll({
+                                top: chatroomModalMessagesContainer.scrollHeight,
+                                behavior: 'smooth'
+                            });
+
+
+                        }
+                    }).catch(error => {
+                        console.error('Error sending message:', error);
+                    });
+            });
+        }
+
+    })
+
+
+
+</script>

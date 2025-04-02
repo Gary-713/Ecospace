@@ -1,0 +1,97 @@
+<% if (typeof user !=='undefined' && user && user.username) { %>
+  <aside class="sidemenu">
+    <div class="sidemenu-header">
+      <div class="user-profile">
+        <img src="img/user.png" alt="Profile Picture" class="profile-pic">
+        <span class="user-name">
+          <%= user.username %>
+        </span>
+      </div>
+    </div>
+
+    <nav class="sidemenu-nav">
+      <div class="nav-header">MENU</div>
+
+      <button class="nav-item active analytics-btn" data-link="/analytics">
+        <i class='bx bx-trending-up'></i> <span>Analytics</span>
+      </button>
+
+      <button class="nav-item buy-btn" data-link="/buy-products">
+        <i class='bx bx-purchase-tag'></i> <span>Buy Products</span>
+      </button>
+
+      <% if (user.designation==='seller' ) { %>
+        <button class="nav-item sell-btn" data-link="/sell">
+          <i class='bx bx-purchase-tag'></i> <span>Sell</span>
+        </button>
+        <% } %>
+
+          <button class="nav-item shopping-cart-btn" data-link="/cart">
+            <i class='bx bx-cart'></i> <span>Shopping Cart</span>
+          </button>
+
+          <button class="nav-item orders-btn" data-link="/orders">
+            <i class='bx bx-receipt'></i> <span>Orders</span>
+          </button>
+
+          <button class="nav-item messages-btn" data-link="/messages">
+            <i class='bx bx-message-dots'></i> <span>Messages</span>
+              <span class="notification"></span>
+     
+          </button>
+    </nav>
+
+    <nav class="others-nav">
+      <div class="nav-header">OTHERS</div>
+
+      <button class="nav-item">
+        <i class='bx bx-help-circle'></i> <span>Get Help</span>
+      </button>
+
+      <button class="nav-item">
+        <i class='bx bx-cog'></i> <span>Settings</span>
+      </button>
+
+      <button class="nav-item" data-link="/logout">
+        <i class='bx bx-log-out'></i> <span>Logout</span>
+      </button>
+    </nav>
+  </aside>
+  <% } %>
+
+    <script>
+     document.addEventListener("DOMContentLoaded", function () {
+  const navItems = document.querySelectorAll(".nav-item");
+
+  // Function to update active class based on URL
+  function updateActiveNavItem() {
+    const currentPath = window.location.pathname; // Get current path (you can also use search params if needed)
+    navItems.forEach(item => {
+      const itemLink = item.getAttribute('data-link');
+      if (currentPath.includes(itemLink)) { // Check if the current path matches the data-link
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+
+  // Call the function to set the active state on page load
+  updateActiveNavItem();
+
+  // When a nav item is clicked, update active class and redirect
+  navItems.forEach(item => {
+    item.addEventListener("click", function () {
+      // Remove 'active' class from all items
+      navItems.forEach(nav => nav.classList.remove("active"));
+
+      // Store the selected page in localStorage
+      localStorage.setItem("activePage", this.getAttribute('data-link'));
+
+      // Redirect to the corresponding page
+      window.location.href = this.getAttribute('data-link');
+    });
+  });
+});
+
+    </script>

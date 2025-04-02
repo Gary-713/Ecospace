@@ -1,0 +1,116 @@
+<div class="signin-form-container" id="signInContainer">
+    <h2>Sign in to your account</h2>
+    <form action="/admin" method="POST" id="signinForm">
+        <label for="username"><b>Username</b></label>
+        <input type="text" id="username" placeholder="Enter Username" name="username" required>
+
+        <label for="password"><b>Password</b></label>
+        <div class="password-container">
+            <input type="password" id="password" placeholder="Enter Password" name="password" required>
+            <span class="toggle-password" onclick="togglePassword('password', this)">
+                <i class='bx bx-hide'></i>
+            </span>
+        </div>
+
+        <button type="submit">Sign In</button>
+    </form>
+    <p class="signup-link">Don't have an account? <a href="#" id="showRegister">Register</a></p>
+    <p class="terms">Terms & Conditions</p>
+</div>
+
+<div class="register-form-container hidden fade-out" id="registerContainer">
+    <h2>Register your account</h2>
+    <form action="/register" method="POST" id="registerForm">
+
+        <label for="username"><b>Username</b></label>
+        <input type="text" id="username" placeholder="Enter Username" name="username" required>
+
+        <label for="password"><b>Password</b></label>
+        <div class="password-container">
+            <input type="password" id="register-password" placeholder="Enter Password" name="password" required>
+            <span class="toggle-password" onclick="togglePassword('register-password', this)">
+                <i class='bx bx-hide'></i>
+            </span>
+        </div>
+
+        <label><b>Register as:</b></label>
+        <div class="designation-selection">
+            <input type="radio" id="buyer" name="designation" value="buyer" required>
+            <label for="buyer">Buyer</label>
+
+            <input type="radio" id="seller" name="designation" value="seller">
+            <label for="seller">Seller</label>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+    <p class="signup-link">Already have an account? <a href="#" id="showSignIn">Sign in</a></p>
+    <p class="terms">Terms & Conditions</p>
+</div>
+
+<script>
+    const signInContainer = document.getElementById("signInContainer");
+    const registerContainer = document.getElementById("registerContainer");
+
+    document.getElementById("showRegister").addEventListener("click", function (event) {
+        event.preventDefault();
+
+        signInContainer.classList.add("fade-out");
+
+        setTimeout(() => {
+            signInContainer.classList.add("hidden");
+            registerContainer.classList.remove("hidden");
+            registerContainer.classList.remove("fade-out");
+        }, 500);
+    });
+
+    document.getElementById("showSignIn").addEventListener("click", function (event) {
+        event.preventDefault();
+
+        registerContainer.classList.add("fade-out");
+
+        setTimeout(() => {
+            registerContainer.classList.add("hidden");
+            signInContainer.classList.remove("hidden");
+            signInContainer.classList.remove("fade-out");
+        }, 500);
+
+
+
+    });
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get("action");
+
+
+    if (action === "register") {
+        signInContainer.classList.add("fade-out");
+        signInContainer.classList.add("hidden");
+        registerContainer.classList.remove("hidden");
+        registerContainer.classList.remove("fade-out");
+    } else {
+
+        registerContainer.classList.add("fade-out");
+        registerContainer.classList.add("hidden");
+        signInContainer.classList.remove("hidden");
+        signInContainer.classList.remove("fade-out");
+    }
+
+
+
+    function togglePassword(inputId, icon) {
+    let input = document.getElementById(inputId);
+    let iconElement = icon.querySelector("i");
+
+    if (input.type === "password") {
+        input.type = "text";
+        iconElement.classList.replace("bx-hide", "bx-show");
+    } else {
+        input.type = "password";
+        iconElement.classList.replace("bx-show", "bx-hide");
+    }
+}
+
+
+</script>

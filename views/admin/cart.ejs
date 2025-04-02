@@ -1,0 +1,233 @@
+<div class="product-page-container">
+    <div class="dashboard-container">
+        <div class="product_content">
+            <div class="product-header">
+                <h2>Shopping Cart</h2>
+            </div>
+            <div class="product-table-container">
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% cart.items.forEach(item=> { %>
+                            <tr>
+                                <td>
+                                    <%= item.product.title %>
+                                </td>
+                                <td>
+
+                                    <%= item.quantity %>
+                                </td>
+                                <td>
+                                    <%= item.price %>
+                                </td>
+                                <td>
+                                    <%= item.price * item.quantity %>
+                                </td>
+
+                                <td>
+                                    <form action="/remove-from-cart/<%= item.product._id %>" method="POST">
+                                        <input type="number" class="quantity-input" value="<%= item.quantity %>" min="0" name="quantity">
+                                        <button class="remove-from-cart-btn">Update Cart</button>
+                                    </form>
+                                </td>
+
+                            </tr>
+                            <% }) %>
+                                <tr>
+                                    <td>Total: </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <%= cart.totalPrice %>
+                                    </td>
+                                </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="proceed-to-payment-container">
+                <button id="proceed-to-payment-btn" class="proceed-to-payment-btn">Make Order</button>
+            </div>
+
+            <div id="payment-success-container" style="display: none;">
+                <form action="/create-order" method="POST">
+
+                    <button id="proceed-to-checkout-btn" class="proceed-to-checkout-btn">Proceed to Checkout</button>
+
+
+                </form>
+            </div>
+
+            <div id="payment-modal" class="payment-modal" style="display: none;">
+                <div class="payment-modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2>Enter Email and OTP</h2>
+
+                    <form id="request-otp-form">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email">
+                        <button id="request-otp-btn" type="button">Request OTP</button>
+                    </form>
+                    <br>
+
+                    <form id="verify-otp-form">
+                        <label for="otp">OTP:</label>
+                        <input type="text" id="otp" name="otp">
+                        <button id="verify-otp-btn" type="submit">Verify OTP</button>
+                    </form>
+
+                    <div id="resend-otp-container" style="margin-top: 10px;">
+                        <span id="resend-timer" style="display: none;">Resend in <span id="timer">15</span>
+                            seconds</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const proceedToPaymentBtn = document.getElementById('proceed-to-payment-btn');
+        const paymentModal = document.getElementById('payment-modal');
+        const closeModal = document.querySelector('.close-modal');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const requestOtpBtn = document.getElementById('request-otp-btn');
+        const resendTimerContainer = document.getElementById('resend-otp-container');
+        const resendTimerDisplay = document.getElementById('resend-timer');
+        const timerDisplay = document.getElementById('timer');
+        const paymentSuccessContainer = document.getElementById('payment-success-container');
+        const proceedToCheckoutBtn = document.getElementById('proceed-to-checkout-btn');
+
+        let timerInterval;
+        let remainingTime = 15;
+
+        function startTimer() {
+            remainingTime = 15;
+            timerDisplay.textContent = remainingTime;
+            resendTimerDisplay.style.display = 'inline';
+            requestOtpBtn.disabled = true;
+            requestOtpBtn.style.backgroundColor = '#ccc';
+            requestOtpBtn.style.cursor = 'not-allowed';
+
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                timerDisplay.textContent = remainingTime;
+
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    resendTimerDisplay.style.display = 'none';
+                    requestOtpBtn.disabled = false;
+                    requestOtpBtn.style.backgroundColor = '';
+                    requestOtpBtn.style.cursor = 'pointer';
+                }
+            }, 1000);
+        }
+
+        proceedToPaymentBtn.addEventListener('click', function () {
+            paymentModal.style.display = 'block';
+        });
+
+        closeModal.addEventListener('click', function () {
+            paymentModal.style.display = 'none';
+            clearInterval(timerInterval);
+            resendTimerDisplay.style.display = 'none';
+            requestOtpBtn.disabled = false;
+            requestOtpBtn.style.backgroundColor = '';
+            requestOtpBtn.style.cursor = 'pointer';
+        });
+
+        verifyOtpBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const otp = document.getElementById('otp').value;
+
+            fetch('/verify-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email, otp: otp }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    if (data.success) {
+                        paymentModal.style.display = 'none';
+                        clearInterval(timerInterval);
+                        resendTimerDisplay.style.display = 'none';
+                        requestOtpBtn.disabled = false;
+                        requestOtpBtn.style.backgroundColor = '';
+                        requestOtpBtn.style.cursor = 'pointer';
+
+                        // Show proceed to checkout button
+                        paymentSuccessContainer.style.display = 'block';
+
+                        // proceedToCheckoutBtn.addEventListener('click', function () {
+                        //   fetch('/create-order', {
+                        //     method: "POST"
+                        //   })
+                        // });
+
+
+
+                    } else {
+                        console.log(error)
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+
+        requestOtpBtn.addEventListener('click', function () {
+            const email = document.getElementById('email').value;
+
+            fetch('/request-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.log(data.error);
+                    } else {
+                        startTimer();
+                        console.log(data);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+
+
+
+
+        window.addEventListener('click', function (event) {
+            if (event.target === paymentModal) {
+                paymentModal.style.display = 'none';
+                clearInterval(timerInterval);
+                resendTimerDisplay.style.display = 'none';
+                requestOtpBtn.disabled = false;
+                requestOtpBtn.style.backgroundColor = '';
+                requestOtpBtn.style.cursor = 'pointer';
+            }
+        });
+    })
+
+</script>

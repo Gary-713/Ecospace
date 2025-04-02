@@ -1,0 +1,261 @@
+<div class="product-page-container">
+    <div class="dashboard-container">
+        <div class="product_content">
+            <div class="product-header">
+                <h2>Products</h2>
+                <div class="product-filters">
+                    <div class="search-sort-filter">
+                        <input type="text" id="productSearch" placeholder="Search Product Name...">
+                        <select id="sortProducts">
+                            <option value="">Sort</option>
+                            <option value="price-asc">Price: Low to High</option>
+                            <option value="price-desc">Price: High to Low</option>
+                            <option value="name-asc">Name: A to Z</option>
+                            <option value="name-desc">Name: Z to A</option>
+                        </select>
+                        <select id="filterProducts">
+                            <option value="">Filter By Category</option>
+                            <option value="Fruit">Fruit</option>
+                            <option value="Vegetable">Vegetable</option>
+                            <option value="Farm Tool">Farm Tool</option>
+                            <option value="Animal Produce">Animal Produce</option>
+                        </select>
+                        <button id="clearFiltersBtn">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-table-container">
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Category</th>
+                            <th>Title</th>
+                            <th>Price (KES)</th>
+                            <th>Add to Cart</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% data.forEach(product=> { %>
+                            <tr>
+                                <td>
+                                    <%= product._id %>
+                                </td>
+                                <td>
+                                    <%= product.category %>
+                                </td>
+
+                                <td class="product-pic-place">
+                                    <!-- <img src="<%= product.imageURL %>"  alt="<%= product.title %>" class="product-image-small">  -->
+                                    <%= product.title %>
+                                </td>
+                                <td>
+                                    <%= product.price %>
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <form action="/add-to-cart/<%= product._id %>" method="POST">
+                                            <input type="number" class="quantity-input" value="1" min="1"
+                                                name="quantity">
+                                            <button class="add-to-cart">Add to Cart</button>
+                                        </form>
+                                        <button id="contact-seller" class="contact-seller">Contact Seller</button>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Contact Seller Modal -->
+    <div id="unique-modal-contact-seller" class="unique-modal">
+        <div class="unique-modal-content">
+            <span class="unique-modal-close">&times;</span>
+            <h2>Contact Seller</h2>
+            <form action="/contact-seller" id="unique-modal-form" method="POST">
+                <div class="unique-modal-product-info">
+                    <div class="unique-modal-product-item">
+                        <strong>Product ID:</strong> <span id="unique-modal-product-id"></span>
+                        <input type="hidden" name="productId" id="hidden-product-id">
+                    </div>
+                    <div class="unique-modal-product-item">
+                        <strong>Title:</strong> <span id="unique-modal-product-title"></span>
+                        <input type="hidden" name="title" id="hidden-product-title">
+                    </div>
+                    <div class="unique-modal-product-item">
+                        <strong>Price (KES):</strong> <span id="unique-modal-product-price"></span>
+                        <input type="hidden" name="price" id="hidden-product-price">
+                    </div>
+                    <div class="unique-modal-product-item">
+                        <strong>Category:</strong> <span id="unique-modal-product-category"></span>
+                        <input type="hidden" name="category" id="hidden-product-category">
+                    </div>
+                </div>
+                <div class="unique-modal-row">
+                    <label>Message:</label>
+                    <textarea id="unique-modal-message" name="message" placeholder="Enter your message..."
+                        required></textarea>
+                </div>
+                <button type="submit" class="unique-modal-submit-btn">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+
+
+
+        // Contact Seller Modal Logic
+        const modal = document.getElementById("unique-modal-contact-seller");
+        const closeModal = document.querySelector(".unique-modal-close");
+
+        document.addEventListener("click", function (event) {
+            if (event.target.classList.contains("contact-seller")) {
+                const row = event.target.closest("tr");
+                if (!row) return;
+
+                document.getElementById("unique-modal-product-id").textContent = row.cells[0].innerText;
+                document.getElementById("unique-modal-product-category").textContent = row.cells[1].innerText;
+                document.getElementById("unique-modal-product-title").textContent = row.cells[2].innerText;
+                document.getElementById("unique-modal-product-price").textContent = row.cells[3].innerText;
+
+                modal.style.display = "block"; // Show modal
+            }
+        });
+
+        closeModal.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+
+        window.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+
+        // Handle form submission
+        const form = document.getElementById("unique-modal-form");
+        form.addEventListener("submit", function () {
+            document.getElementById("hidden-product-id").value = document.getElementById("unique-modal-product-id").textContent;
+            document.getElementById("hidden-product-title").value = document.getElementById("unique-modal-product-title").textContent;
+            document.getElementById("hidden-product-price").value = document.getElementById("unique-modal-product-price").textContent;
+            document.getElementById("hidden-product-category").value = document.getElementById("unique-modal-product-category").textContent;
+        });
+
+        // Filtering and Sorting Logic
+        const searchInput = document.getElementById("productSearch");
+        const tableRows = document.querySelectorAll(".product-table tbody tr");
+        const sortSelect = document.getElementById("sortProducts");
+        const filterSelect = document.getElementById("filterProducts");
+        const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+        function applyFilters() {
+            const filterCategory = filterSelect.value.trim().toLowerCase();
+            const searchTerm = searchInput.value.trim().toLowerCase();
+
+            tableRows.forEach(row => {
+                const category = row.cells[1].textContent.trim().toLowerCase();
+                const title = row.cells[2].textContent.trim().toLowerCase();
+                const searchMatch = searchTerm === "" || title.includes(searchTerm) || category.includes(searchTerm);
+                const categoryMatch = filterCategory === "" || category.includes(filterCategory);
+                row.style.display = searchMatch && categoryMatch ? "" : "none";
+            });
+        }
+
+        function applySorting() {
+            const sortBy = sortSelect.value;
+            const tableBody = document.querySelector(".product-table tbody");
+            let sortedRows = [...tableRows];
+
+            sortedRows.sort((a, b) => {
+                if (sortBy.includes("price")) {
+                    const priceA = parseFloat(a.cells[3].textContent);
+                    const priceB = parseFloat(b.cells[3].textContent);
+                    return sortBy === "price-asc" ? priceA - priceB : priceB - priceA;
+                } else if (sortBy.includes("name")) {
+                    const nameA = a.cells[2].textContent.toLowerCase();
+                    const nameB = b.cells[2].textContent.toLowerCase();
+                    return sortBy === "name-asc" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                }
+            });
+
+            tableRows.forEach(row => row.remove());
+            sortedRows.forEach(row => tableBody.appendChild(row));
+        }
+
+        searchInput.addEventListener("keyup", () => {
+            applyFilters();
+            applySorting();
+        });
+
+        filterSelect.addEventListener("change", () => {
+            applyFilters();
+            applySorting();
+        });
+
+        sortSelect.addEventListener("change", applySorting);
+
+        clearFiltersBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            filterSelect.selectedIndex = 0;
+            sortSelect.selectedIndex = 0;
+            applyFilters();
+            applySorting();
+        });
+
+        // Add to Cart Button Functionality
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        addToCartButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const form = event.target.closest('form');
+                // const quantity = form.querySelector('.quantity-input').value;
+                showToast(`Updating your shopping cart..`);
+                form.submit();
+            });
+        });
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 6000);
+        }
+
+        // Increment/Decrement Quantity
+        document.querySelectorAll(".quantity-controls").forEach(control => {
+            const decrementBtn = control.querySelector(".decrement");
+            const incrementBtn = control.querySelector(".increment");
+            const quantityInput = control.querySelector(".quantity-input");
+
+            decrementBtn.addEventListener("click", () => {
+                let currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+
+            incrementBtn.addEventListener("click", () => {
+                let currentValue = parseInt(quantityInput.value);
+                quantityInput.value = currentValue + 1;
+            });
+        });
+    });
+
+
+
+
+
+</script>

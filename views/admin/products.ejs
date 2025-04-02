@@ -1,0 +1,229 @@
+
+            <div class="product-page">
+    <div class="product-header">
+      <h2>Products</h2>
+      <div class="product-filters">
+        <div class="search-sort-filter">
+
+          <input type="text" id="productSearch" placeholder="Search Product Name...">
+
+          <select id="sortProducts">
+            <option value="">Sort</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A to Z</option>
+            <option value="name-desc">Name: Z to A</option>
+          </select>
+
+          <select id="filterProducts">
+            <option value="">Filter By Category</option>
+            <option value="Fruit">Fruit</option>
+            <option value="Vegetable">Vegetable</option>
+            <option value="Farm Tool">Farm Tool</option>
+            <option value="Animal Produce">Animal Produce</option>
+          </select>
+          <button id="clearFiltersBtn">Clear Filters</button>
+
+        </div>
+      </div>
+    </div>
+    <div class="product-table-container">
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Title</th>
+            <th>Price (KES)</th>
+            <th>Add to Cart</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(product=> { %>
+            <tr>
+              <td>
+                <%= product._id %>
+              </td>
+              <td>
+                <%= product.category %>
+              </td>
+
+              <td class="product-pic-place">
+                <!-- <img src="<%= product.imageURL %>"  alt="<%= product.title %>" class="product-image-small">  -->
+                <%= product.title %>
+              </td>
+              <td>
+                <%= product.price %>
+              </td>
+              <td>
+                <div class="actions">
+                  <!-- <div class="quantity-controls"> -->
+                    <!-- <button class="quantity-btn decrement">-</button>
+                    <input type="number" class="quantity-input" value="0" min="0">
+                    <button class="quantity-btn increment">+</button> -->
+                  <!-- </div> -->
+                  <form action="/add-to-cart/<%= product._id %>" method="POST">
+                    <input type="number" class="quantity-input" value="1" min="1" name="quantity">
+                    <button class="add-to-cart">Add to Cart</button>
+                  </form>
+
+
+
+
+                  <button id="contact-seller" class="contact-seller">Contact Seller</button>
+                </div>
+
+              </td>
+            </tr>
+
+            <% }) %>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <script>
+
+      // Increment/Decrement Functionality
+  const quantityControls = document.querySelectorAll(".quantity-controls");
+
+quantityControls.forEach(control => {
+  const decrementBtn = control.querySelector(".decrement");
+  const incrementBtn = control.querySelector(".increment");
+  const quantityInput = control.querySelector(".quantity-input");
+
+  decrementBtn.addEventListener("click", function () {
+    let currentValue = parseInt(quantityInput.value);
+    if (currentValue > 0) {
+      quantityInput.value = currentValue - 1;
+    }
+  });
+
+  incrementBtn.addEventListener("click", function () {
+    let currentValue = parseInt(quantityInput.value);
+    quantityInput.value = currentValue + 1;
+  });
+
+});
+
+const searchInput = document.getElementById("productSearch");
+    const tableRows = document.querySelectorAll(".product-table tbody tr");
+    const sortSelect = document.getElementById("sortProducts");
+    const tableBody = document.querySelector(".product-table tbody");
+    const filterSelect = document.getElementById("filterProducts");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+    function applyFilters() {
+      const filterCategory = filterSelect.value.trim().toLowerCase();
+      const searchTerm = searchInput.value.trim().toLowerCase();
+
+      tableRows.forEach(row => {
+        const categoryCell = row.querySelector("td:nth-child(2)");
+        const titleCell = row.querySelector("td:nth-child(3)");
+
+        const category = categoryCell ? categoryCell.textContent.trim().toLowerCase() : "";
+        const title = titleCell ? titleCell.textContent.trim().toLowerCase() : "";
+
+        // Search input should match either title or category
+        const searchMatch = searchTerm === "" || title.includes(searchTerm) || category.includes(searchTerm);
+        const categoryMatch = filterCategory === "" || category.includes(filterCategory);
+
+        row.style.display = searchMatch && categoryMatch ? "" : "none";
+      });
+    }
+
+    // Function to apply sorting
+    function applySorting() {
+      const sortBy = sortSelect.value;
+
+      let sortedRows = [...tableRows];
+
+      switch (sortBy) {
+        case "price-asc":
+          sortedRows.sort((a, b) => {
+            const priceA = parseFloat(a.querySelector("td:nth-child(4)").textContent);
+            const priceB = parseFloat(b.querySelector("td:nth-child(4)").textContent);
+            return priceA - priceB;
+          });
+          break;
+        case "price-desc":
+          sortedRows.sort((a, b) => {
+            const priceA = parseFloat(a.querySelector("td:nth-child(4)").textContent);
+            const priceB = parseFloat(b.querySelector("td:nth-child(4)").textContent);
+            return priceB - priceA;
+          });
+          break;
+        case "name-asc":
+          sortedRows.sort((a, b) => {
+            const nameA = a.querySelector("td:nth-child(3)").textContent.toLowerCase();
+            const nameB = b.querySelector("td:nth-child(3)").textContent.toLowerCase();
+            return nameA.localeCompare(nameB);
+          });
+          break;
+        case "name-desc":
+          sortedRows.sort((a, b) => {
+            const nameA = a.querySelector("td:nth-child(3)").textContent.toLowerCase();
+            const nameB = b.querySelector("td:nth-child(3)").textContent.toLowerCase();
+            return nameB.localeCompare(nameA);
+          });
+          break;
+      }
+
+      tableRows.forEach(row => row.remove());
+      sortedRows.forEach(row => tableBody.appendChild(row));
+    }
+
+
+    // Initial filtering and sorting
+    applyFilters();
+    applySorting();
+
+    filterSelect.addEventListener("change", function () {
+      applyFilters();
+      applySorting();
+    });
+
+    sortSelect.addEventListener("change", function () {
+      applySorting();
+    });
+
+    searchInput.addEventListener("keyup", function () {
+      applyFilters();
+      applySorting();
+    });
+
+    clearFiltersBtn.addEventListener("click", function () {
+      searchInput.value = "";
+      filterSelect.selectedIndex = 0; // Reset filter dropdown to default option
+      sortSelect.selectedIndex = 0; // Reset sort dropdown to default option
+
+      applyFilters();
+      applySorting();
+    });
+
+
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+    addToCartButtons.forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const form = event.target.closest('form');
+        const quantity = form.querySelector('.quantity-input').value;
+        // Optionally, you can log or display the quantity here
+        console.log(`Adding ${quantity} items to the cart.`);
+        showToast(`Adding ${quantity} items to the cart.`);
+        form.submit();
+      })
+
+    })
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.classList.add('toast');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.remove() }, 7000); // Remove the toast after 3 seconds
+    }
+
+  </script>
+
+

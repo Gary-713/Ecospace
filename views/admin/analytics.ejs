@@ -1,0 +1,114 @@
+<div class="analytics-dashboard">
+    <h2 >Analytics Dashboard</h2>
+
+    <!-- Overview Cards -->
+    <div class="analytics-overview">
+        <div class="analytics-card">
+            <h3>Total Orders Placed</h3>
+            <p id="totalOrders">0</p>
+        </div>
+        <div class="analytics-card">
+            <h3>Total Spent (KES)</h3>
+            <p id="totalSpent">0</p>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="analytics-charts">
+        <h3>Orders Over Time</h3>
+        <canvas id="ordersBarChart"></canvas>
+    </div>
+
+    <div class="analytics-financial">
+        <h3>Monthly Spending Trends</h3>
+        <canvas id="spendingLineChart"></canvas>
+    </div>
+
+    <div class="analytics-charts">
+        <h3>Most Purchased Categories</h3>
+        <canvas id="categoriesPieChart"></canvas>
+    </div>
+
+    <!-- Engagement Section -->
+    <div class="analytics-engagement">
+        <h3>Engagement</h3>
+        <ul>
+            <li>Most Contacted Seller: <span id="topSeller">Loading...</span></li>
+            <li>Average Response Time: <span id="responseTime">0 mins</span></li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Dummy Data
+    const analyticsData = {
+        totalOrders: 120,
+        totalSpent: 150000,
+        ordersOverTime: [10, 15, 20, 18, 25, 30, 35], // Weekly orders
+        monthlySpending: [12000, 14000, 11000, 15000, 18000, 20000], // Monthly spending
+        categories: { Electronics: 40, Fashion: 30, Home: 20, Others: 10 },
+        topSeller: "John's Electronics",
+        avgResponseTime: 8,
+    };
+
+    // Update UI
+    document.getElementById("totalOrders").textContent = analyticsData.totalOrders;
+    document.getElementById("totalSpent").textContent = `KES ${analyticsData.totalSpent}`;
+    document.getElementById("topSeller").textContent = analyticsData.topSeller;
+    document.getElementById("responseTime").textContent = `${analyticsData.avgResponseTime} mins`;
+
+    // Render Charts
+    renderOrdersBarChart(analyticsData.ordersOverTime);
+    renderSpendingLineChart(analyticsData.monthlySpending);
+    renderCategoriesPieChart(analyticsData.categories);
+      
+
+    // Bar Chart: Orders Over Time
+    function renderOrdersBarChart(data) {
+        new Chart(document.getElementById("ordersBarChart").getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6", "Week 7"],
+                datasets: [{
+                    label: "Orders",
+                    data: data,
+                    backgroundColor: "#3498db",
+                    borderRadius: 6,
+                }]
+            },
+        });
+    }
+
+    // Line Chart: Monthly Spending
+    function renderSpendingLineChart(data) {
+        new Chart(document.getElementById("spendingLineChart").getContext("2d"), {
+            type: "line",
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Spending (KES)",
+                    data: data,
+                    borderColor: "#e74c3c",
+                    borderWidth: 2,
+                    fill: false,
+                }]
+            },
+        });
+    }
+
+    // Pie Chart: Most Purchased Categories
+    function renderCategoriesPieChart(data) {
+        new Chart(document.getElementById("categoriesPieChart").getContext("2d"), {
+            type: "pie",
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ["#1abc9c", "#f39c12", "#9b59b6", "#e74c3c"],
+                }]
+            },
+        });
+    }
+
+
+</script>

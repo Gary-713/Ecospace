@@ -1,0 +1,36 @@
+<div class="product-page">
+    <div class="product-header">
+        <div class="sell-form">
+            <h2>Sell Your Product</h2>
+            <form action="/add-product" method="POST">
+                <!-- Product Title -->
+                <label for="title">Product Title:</label>
+                <input type="text" id="title" name="title" required placeholder="Enter product title">
+
+
+                <!-- Product Price -->
+                <label for="price">Price (KES):</label>
+                <input type="number" id="price" name="price" required placeholder="Enter price" min="0">
+
+
+                <!-- Product Image URL -->
+                <label for="imageUrl">Product Image URL:</label>
+                <input type="url" id="imageUrl" name="imageUrl" required placeholder="Enter image URL">
+
+                <!-- Category Dropdown -->
+                <label for="category">Category:</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Fruit">Fruit</option>
+                    <option value="Vegetable">Vegetable</option>
+                    <option value="Farm Tool">Farm Tool</option>
+                    <option value="Animal Produce">Animal Produce</option>
+                </select>
+
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn">Submit Product</button>
+            </form>
+        </div>
+    </div>
+</div>
