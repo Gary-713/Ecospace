@@ -60,7 +60,7 @@ router.post('/request-otp', authMiddleware, async (req, res) => {
   const cart = await Cart.findById(cartId).populate('totalPrice');
 
   const total = cart.totalPrice;
-  console.log(cart.totalPrice);
+  // console.log(cart.totalPrice);?
 
 
   const { email } = req.body;
@@ -73,7 +73,7 @@ router.post('/request-otp', authMiddleware, async (req, res) => {
       from: 'mbungogary13@gmail.com',
       to: email,
       subject: 'Email Verification',
-      text: `Thank you for shopping with Ecospace. Your OTP verification code is ${otp}. Your total is ${total} KSH.`,
+      text: Thank you for shopping with Ecospace. Your OTP verification code is ${otp}. Your total is ${total} KSH.,
     };
 
     let transporter = nodemailer.createTransport({
@@ -196,7 +196,7 @@ router.post('/register', async (req, res) => {
     const user = await User.create({
       username,
       password: hashedPassword,
-      designation,
+      designation
     });
 
     // Create an empty cart for the new user
@@ -211,9 +211,12 @@ router.post('/register', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, jwtSecret, {
       expiresIn: '1h',
     });
+   // Send the token as part of the JSON response body
 
     // Set cookie with the token
     res.cookie('token', token, { httpOnly: true });
+    return res.status(201).json({ token }); // Use return to prevent further execution
+
 
     // Redirect to dashboard
     res.redirect('/analytics');
@@ -222,7 +225,6 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Something went wrong' });
   }
 });
-
 
 
 
@@ -440,8 +442,8 @@ router.post('/create-order', authMiddleware, async (req, res) => {
           quantity: item.quantity,
         };
       }),
-      success_url: "http://localhost:4000/analytics", //On successful payment, here is where we go
-      cancel_url: "http://localhost:4000/analytics",
+      success_url: "https://ecospace.onrender.com/analytics", //On successful payment, here is where we go
+      cancel_url: "https://ecospace.onrender.com/analytics",
     });
     // res.json({ url: session.url});
 
@@ -661,7 +663,7 @@ router.get("/chatroom/:chatroomId/messages", authMiddleware, async (req, res) =>
     );
 
 
-    console.log(chatroom.messages)
+    // console.log(chatroom.messages)
     res.json({ messages: chatroom.messages });
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -859,4 +861,4 @@ router.get('/buy-products', authMiddleware, async (req, res) => {
 
   }
 })
-module.exports = router;
+module.exports = router;
