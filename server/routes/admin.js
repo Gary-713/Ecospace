@@ -440,8 +440,8 @@ router.post('/create-order', authMiddleware, async (req, res) => {
           quantity: item.quantity,
         };
       }),
-      success_url: "http://localhost:4000/analytics", //On successful payment, here is where we go
-      cancel_url: "http://localhost:4000/analytics",
+      success_url: "http://ecospace.onrender.com/analytics", //On successful payment, here is where we go
+      cancel_url: "http://ecospace.onrender.com/analytics",
     });
     // res.json({ url: session.url});
 
